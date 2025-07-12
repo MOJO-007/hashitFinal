@@ -1,42 +1,333 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(262, 83%, 58%);
+  --radius: 0.5rem;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, hsl(240, 10%, 3.9%) 0%, hsl(240, 8%, 8%) 50%, hsl(240, 10%, 3.9%) 100%);
+  color: var(--foreground);
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  background: rgba(15, 23, 42, 0.3);
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 2.5rem;
   text-align: center;
+  margin-bottom: 1rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h2 {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
 }
 
-@keyframes logo-spin {
+h3 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+h2:first-child,
+h3:first-child {
+  margin-top: 0;
+}
+
+p {
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+  margin: 3rem 0;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 1rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
+button {
+  background: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(262, 83%, 48%) 100%);
+  color: var(--foreground);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+button:hover {
+  background: linear-gradient(135deg, hsl(262, 83%, 48%) 0%, hsl(262, 83%, 58%) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(147, 51, 234, 0.3);
+}
+
+button:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+.zkp-section,
+.verification-section {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 14px;
+  color: var(--muted-foreground);
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.info-box div {
+  padding-bottom: 4px;
+}
+
+.dashboard-home h1 {
+  font-size: 3rem;
+  background: linear-gradient(135deg, var(--primary) 0%, hsl(0, 0%, 98%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-home>p {
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.connect-wallet-btn {
+  width: auto;
+  padding: 14px 28px;
+  font-size: 1.1rem;
+  margin: 0 auto 2rem;
+  display: block;
+}
+
+.wallet-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.wallet-info span {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.option-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.option-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.option-card h2 {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.option-card p {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.view-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.card {
-  padding: 2em;
+.back-button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  width: auto;
+  margin-bottom: 2rem;
+  padding: 8px 16px;
 }
 
-.read-the-docs {
-  color: #888;
+.back-button:hover {
+  background: var(--muted);
+  border-color: var(--primary);
+  transform: none;
+  box-shadow: none;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.checkbox-container input {
+  width: auto;
+  margin-right: 10px;
+  accent-color: var(--primary);
+}
+
+.checkbox-container label {
+  color: var(--foreground);
+  user-select: none;
+}
+
+.document-list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.document-list th,
+.document-list td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.document-list th {
+  background-color: rgba(15, 23, 42, 0.8);
+  font-weight: 600;
+}
+
+.document-list td {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.document-list button {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.verification-result {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
