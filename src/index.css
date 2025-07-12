@@ -1,0 +1,107 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 30px;
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+h1,
+h2,
+h3 {
+  color: #2c3e50;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"],
+button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 5px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button:disabled {
+  background-color: #aaa;
+}
+
+.info-box {
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f0f4f8;
+  border: 1px solid #d9e2ec;
+}
+
+#retrievedFileContent {
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px dashed #ccc;
+  min-height: 50px;
+  background-color: #f9f9f9;
+  word-break: break-all;
+}
+
+.zkp-section,
+.upload-section {
+  border: 1px dashed #c0d9e8;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  background-color: #fafdff;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IPFS + Sepolia + ZKP Hackathon Demo</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], input[type="number"], input[type="password"], button, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+            margin-top: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .info-box, .error-box {
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .info-box { background-color: #e8f5e9; border: 1px solid #c8e6c9; color: #388e3c; }
+        .error-box { background-color: #ffebee; border: 1px solid #ffcdd2; color: #d32f2f; }
+        #retrievedFileContent {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            min-height: 50px;
+            background-color: #f9f9f9;
+            word-break: break-all;
+        }
+        .zkp-section { border: 1px dashed #c0d9e8; padding: 15px; border-radius: 5px; margin-bottom: 20px;}
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IPFS + Sepolia + ZKP Hackathon Demo</h1>
+        <p>This demo uses IPFS for file storage, the Sepolia blockchain for storing IPFS CIDs and ZKP commitments, and generates a simple Zero-Knowledge Proof in the browser.</p>
+
+        <hr>
+
+        <h2>1. IPFS Content Upload</h2>
+        <p>
+            a. Open **IPFS Desktop** on your computer. <br>
+            b. Go to the "Files" tab, "Import" a file. <br>
+            c. Once uploaded, IPFS Desktop will display a **CID**. **Copy this CID.**
+            <br><br>
+            <strong style="color: red;">NOTE: For a deployed app, you'd integrate an IPFS pinning service here for user uploads.</strong>
+        </p>
+        <label for="ipfsCidInput">Paste IPFS CID Here:</label>
+        <input type="text" id="ipfsCidInput" placeholder="e.g., Qm... or bafy... (from IPFS Desktop)">
+
+        <div class="zkp-section">
+            <h3>2. Generate Zero-Knowledge Proof (ZKP)</h3>
+            <p>Prove you know a "secret document key" without revealing it. The Poseidon hash of this key (derived from its string representation) will be stored on-chain as a "commitment".</p>
+            <label for="secretKeyInput">Enter Secret Document Key:</label>
+            <input type="password" id="secretKeyInput" placeholder="e.g., 'MyTopSecretKey123'" value="MyTopSecretKey123">
+            <button id="generateZKPBtn">Generate ZKP and Get Commitment Hash</button> <p>ZKP Status: <span id="zkpStatus"></span> <span id="zkpSpinner" class="loading-spinner" style="display: none;"></span></p>
+            <p>Generated ZKP Commitment Hash (Bytes32): <span id="zkpCommitmentHash"></span></p>
+        </div>
+
+        <h2>3. Store CID & ZKP Commitment on Sepolia Blockchain</h2>
+        <button id="storeCidZKPBtn">Store on Sepolia Blockchain</button> <p>Transaction Status: <span id="storeStatus"></span></p>
+        <p>New Document ID: <span id="newDocumentId"></span></p>
+
+        <hr>
+
+        <h2>4. Retrieve Content & ZKP Commitment from Sepolia</h2>
+        <label for="retrieveDocumentId">Enter Document ID (e.g., 0, 1, ...):</label>
+        <input type="number" id="retrieveDocumentId" placeholder="e.g., 0">
+        <button id="retrieveDetailsBtn">Retrieve Details</button> <p>Retrieved IPFS CID: <span id="retrievedCid"></span></p>
+        <p>Retrieved ZKP Commitment: <span id="retrievedZkpCommitment"></span></p>
+        <p>Retrieved File Content: (Clicking will open in new tab if a browser can render it directly)</p>
+        <div id="retrievedFileContent"></div>
+
+        <div class="zkp-section">
+            <h3>5. Verify Knowledge of Secret (Local Check)</h3>
+            <p>Prove you know the secret for a retrieved document by re-calculating its hash and matching it against the on-chain commitment.</p>
+            <label for="verifySecretKeyInput">Enter Secret Document Key to Verify:</label>
+            <input type="password" id="verifySecretKeyInput" placeholder="e.g., 'MyTopSecretKey123'">
+            <label for="targetCommitmentInput">Commitment to Verify Against (Paste from retrieved or manual):</label>
+            <input type="text" id="targetCommitmentInput" placeholder="e.g., 0x...">
+            <button id="verifySecretBtn">Verify Secret Knowledge</button> <p>Verification Status: <span id="verificationStatus"></span></p>
+        </div>
+
+        <hr>
+
+        <h2>Log Output</h2>
+        <div id="logOutput" class="info-box"></div>
+    </div>
+
+    <script type="module">
+        // --- Configuration ---
+        // ** IMPORTANT: Replace with your deployed contract address from Sepolia **
+        const CONTRACT_ADDRESS = "0x5A82BA99Db40bd4da085E7E8e43F168Ae1DeDc20"; 
+        
+        // ** IMPORTANT: Paste the FULL ABI from Remix here **
+        // Ensure it's a valid JavaScript array. Copy the entire JSON array from Remix's compilation details.
+        const CONTRACT_ABI = [
+            // PASTE YOUR FULL ABI JSON ARRAY HERE
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "_ipfsCID",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bytes32",
+                        "name": "_zkpCommitmentHash",
+                        "type": "bytes32"
+                    }
+                ],
+                "name": "addDocument",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "documentId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "ipfsCID",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "bytes32",
+                        "name": "zkpCommitmentHash",
+                        "type": "bytes32"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "uploader",
+                        "type": "address"
+                    }
+                ],
+                "name": "DocumentAdded",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "documents",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "ipfsCID",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bytes32",
+                        "name": "zkpCommitmentHash",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "uploader",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_documentId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getDocumentDetails",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bytes32",
+                        "name": "",
+                        "type": "bytes32"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getTotalDocuments",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "nextDocumentId",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ]; 
+
+        // ** PUBLIC SEPOLIA RPC URL - Use with caution, public endpoints can be unreliable/rate-limited **
+        // This is a fallback if MetaMask is not connected for read-only operations.
+        // For production, a backend proxy or a dedicated RPC service (with protected API keys) is recommended.
+        const PUBLIC_SEPOLIA_RPC_URL = "https://rpc.sepolia.org"; // A commonly used public Sepolia RPC endpoint
+
+        // --- Global Variables ---
+        let signer;
+        let contract;
+        let provider; // This will hold the ethers.BrowserProvider when MetaMask is connected
+        let generatedZkpCommitmentHash = ""; // To store the hash for blockchain submission
+
+        // --- ZKP Asset Paths (ensure these match the files you copied into 'frontend/zkp-assets') ---
+        const WASM_PATH = './myposeidon.wasm'; // Corrected path
+        const ZKEY_PATH = './circuit_final.zkey'; // Corrected path
+        const VK_PATH = './verification_key.json'; // Corrected path
+
+        // --- Helper Functions for Logging ---
+        function log(message, isError = false) {
+            const logElement = document.getElementById('logOutput');
+            const p = document.createElement('p');
+            p.className = isError ? 'error-box' : 'info-box';
+            p.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logElement.appendChild(p);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // --- Connect Wallet (MetaMask to Sepolia) ---
+        async function connectWallet() {
+            if (typeof ethers === 'undefined' || typeof ethers.BrowserProvider === 'undefined') {
+                log("Ethers.js library is not loaded or not ready. Cannot connect wallet.", true);
+                return false;
+            }
+
+            if (window.ethereum) {
+                try {
+                    log("Connecting to MetaMask (Sepolia Test Network)...");
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.BrowserProvider(window.ethereum); // Set the global provider
+                    signer = await provider.getSigner();
+                    log(`Wallet connected: ${await signer.getAddress()}`);
+                    
+                    const network = await provider.getNetwork();
+                    if (network.name !== 'sepolia') {
+                        log(`MetaMask is on ${network.name}, please switch to Sepolia Test Network.`, true);
+                        return false;
+                    }
+                    log(`Connected to network: ${network.name}`);
+
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    log("Smart contract initialized with signer.");
+                    return true;
+                } catch (error) {
+                    log(`Error connecting wallet: ${error.message}`, true);
+                    return false;
+                }
+            } else {
+                log("MetaMask not detected! Please install MetaMask. Write operations will not be possible.", true);
+                return false;
+            }
+        }
+
+        // --- ZKP Generation ---
+        async function generateZKP() {
+            if (typeof ethers === 'undefined' || typeof ethers.keccak256 === 'undefined') {
+                log("Ethers.js library is not loaded or not ready. Please check network and browser console.", true);
+                document.getElementById('zkpStatus').textContent = "Error";
+                document.getElementById('zkpSpinner').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('zkpStatus').textContent = "Generating...";
+            document.getElementById('zkpSpinner').style.display = 'inline-block';
+            document.getElementById('zkpCommitmentHash').textContent = "Calculating...";
+
+            const secretKey = document.getElementById('secretKeyInput').value.trim();
+            if (!secretKey) {
+                log("Please enter a secret key for ZKP generation.", true);
+                document.getElementById('zkpStatus').textContent = "Error";
+                document.getElementById('zkpSpinner').style.display = 'none';
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(secretKey);
+            let circuitPreimageInput = 0n;
+            for (let i = 0; i < bytes.length; i++) {
+                circuitPreimageInput = (circuitPreimageInput << 8n) + BigInt(bytes[i]);
+            }
+            const input = {
+                "preimage": circuitPreimageInput.toString()
+            };
+
+            try {
+                log("Starting ZKP proof generation...");
+                if (typeof snarkjs === 'undefined') {
+                    log("snarkjs not loaded. Please ensure network connectivity or check CDN path.", true);
+                    document.getElementById('zkpStatus').textContent = "Error";
+                    document.getElementById('zkpSpinner').style.display = 'none';
+                    return;
+                }
+
+                const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, WASM_PATH, ZKEY_PATH);
+                log("ZKP proof generated successfully!");
+                console.log("Proof:", proof);
+                console.log("Public Signals:", publicSignals);
+
+                generatedZkpCommitmentHash = BigInt(publicSignals[0]).toString(16);
+                generatedZkpCommitmentHash = "0x" + generatedZkpCommitmentHash.padStart(64, '0');
+
+                document.getElementById('zkpCommitmentHash').textContent = generatedZkpCommitmentHash;
+                document.getElementById('zkpStatus').textContent = "Generated!";
+
+            } catch (error) {
+                log(`Error generating ZKP: ${error.message}`, true);
+                document.getElementById('zkpStatus').textContent = "Error";
+                generatedZkpCommitmentHash = "";
+                document.getElementById('zkpCommitmentHash').textContent = "";
+            } finally {
+                document.getElementById('zkpSpinner').style.display = 'none';
+            }
+        }
+
+        // --- Store CID & ZKP Commitment on Blockchain ---
+        async function storeCidAndZKPOnBlockchain() {
+            if (typeof ethers === 'undefined' || typeof ethers.Contract === 'undefined') {
+                log("Ethers.js library is not loaded or not ready. Please check network and browser console.", true);
+                document.getElementById('storeStatus').textContent = "Error";
+                return;
+            }
+
+            if (!signer) {
+                log("Wallet not connected. Please connect MetaMask to store documents.", true);
+                const connected = await connectWallet(); // Try to connect if not already
+                if (!connected) return; // If still not connected, stop here
+            }
+
+            const ipfsCID = document.getElementById('ipfsCidInput').value.trim();
+            if (!ipfsCID) {
+                log("Please enter an IPFS CID.", true);
+                return;
+            }
+            if (!ipfsCID.startsWith("Qm") && !ipfsCID.startsWith("bafy")) {
+                 log("Invalid IPFS CID format. CIDs typically start with 'Qm' or 'bafy'.", true);
+                 return;
+            }
+
+            if (!generatedZkpCommitmentHash) {
+                log("Please generate the ZKP and get the commitment hash first.", true);
+                return;
+            }
+
+            document.getElementById('storeStatus').textContent = "Waiting for MetaMask confirmation...";
+
+            try {
+                log(`Attempting to store CID "${ipfsCID}" and ZKP commitment "${generatedZkpCommitmentHash}" on blockchain...`);
+                // Ensure 'contract' is initialized with 'signer' for write operations
+                if (!contract || contract.runner !== signer) {
+                     contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                }
+
+                const tx = await contract.addDocument(ipfsCID, generatedZkpCommitmentHash);
+                document.getElementById('storeStatus').textContent = `Transaction sent: ${tx.hash}`;
+                log(`Transaction sent: ${tx.hash}`);
+
+                log("Waiting for transaction to be confirmed on Sepolia...");
+                const receipt = await tx.wait(); // Wait for 1 confirmation on Sepolia
+                document.getElementById('storeStatus').textContent = `Transaction successful! Block: ${receipt.blockNumber}`;
+                log(`Transaction confirmed in block ${receipt.blockNumber}. Gas Used: ${receipt.gasUsed.toString()}`);
+
+                const docAddedEvent = receipt.logs.find(log => contract.interface.parseLog(log)?.name === "DocumentAdded");
+                if (docAddedEvent) {
+                    const parsedLog = contract.interface.parseLog(docAddedEvent);
+                    const newId = parsedLog.args.documentId.toString();
+                    document.getElementById('newDocumentId').textContent = newId;
+                    log(`New Document ID assigned: ${newId}`);
+                } else {
+                    const currentNextId = await contract.nextDocumentId();
+                    document.getElementById('newDocumentId').textContent = (currentNextId - BigInt(1)).toString();
+                    log(`Could not find event, estimated Document ID: ${(currentNextId - BigInt(1)).toString()}`);
+                }
+
+            } catch (error) {
+                document.getElementById('storeStatus').textContent = `Error: ${error.message}`;
+                log(`Error storing data on blockchain: ${error.message}`, true);
+            }
+        }
+
+        // --- Retrieve Content & ZKP Commitment ---
+        async function retrieveContentAndZKPFromBlockchainAndIPFS() {
+            if (typeof ethers === 'undefined' || typeof ethers.JsonRpcProvider === 'undefined') {
+                log("Ethers.js library is not loaded or not ready. Please check network and browser console.", true);
+                document.getElementById('retrievedCid').textContent = "Error";
+                document.getElementById('retrievedZkpCommitment').textContent = "Error";
+                document.getElementById('retrievedFileContent').innerHTML = "Error";
+                return;
+            }
+
+            let readProvider;
+            if (signer && provider) { // If MetaMask is connected, use its provider for reads
+                readProvider = provider;
+                log("Using MetaMask provider for read-only contract calls.");
+            } else { // Fallback to public RPC if MetaMask not connected
+                readProvider = new ethers.JsonRpcProvider(PUBLIC_SEPOLIA_RPC_URL);
+                log("MetaMask not connected. Using public Sepolia RPC for read-only contract calls. Reliability may vary.", true);
+            }
+            
+            const readOnlyContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
+
+            const documentId = document.getElementById('retrieveDocumentId').value;
+            if (documentId === "") {
+                log("Please enter a Document ID to retrieve.", true);
+                return;
+            }
+
+            document.getElementById('retrievedCid').textContent = "Fetching...";
+            document.getElementById('retrievedZkpCommitment').textContent = "Fetching...";
+            document.getElementById('retrievedFileContent').innerHTML = "Fetching...";
+
+            try {
+                log(`Retrieving details for Document ID ${documentId} from Sepolia blockchain...`);
+                const [ipfsCID, zkpCommitmentHash] = await readOnlyContract.getDocumentDetails(documentId);
+                document.getElementById('retrievedCid').textContent = ipfsCID;
+                document.getElementById('retrievedZkpCommitment').textContent = zkpCommitmentHash;
+                document.getElementById('targetCommitmentInput').value = zkpCommitmentHash;
+                log(`Retrieved IPFS CID: ${ipfsCID}`);
+                log(`Retrieved ZKP Commitment: ${zkpCommitmentHash}`);
+
+                if (ipfsCID) {
+                    const ipfsGatewayUrl = `https://ipfs.io/ipfs/${ipfsCID}`; // Using ipfs.io as default gateway
+                    log(`Fetching content from IPFS gateway: ${ipfsGatewayUrl}`);
+
+                    const response = await fetch(ipfsGatewayUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                    }
+                    const contentType = response.headers.get('Content-Type');
+                    log(`Content-Type: ${contentType}`);
+
+                    const contentDiv = document.getElementById('retrievedFileContent');
+                    contentDiv.innerHTML = '';
+
+                    const link = document.createElement('a');
+                    link.href = ipfsGatewayUrl;
+                    link.target = "_blank";
+                    link.textContent = `View Full File on IPFS Gateway (${ipfsGatewayUrl})`;
+                    contentDiv.appendChild(link);
+                    contentDiv.appendChild(document.createElement('br'));
+
+                    if (contentType && contentType.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = ipfsGatewayUrl;
+                        img.alt = `IPFS Content for CID: ${ipfsCID}`;
+                        img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.marginTop = '10px';
+                        contentDiv.appendChild(img); log("Image retrieved.");
+                    } else if (contentType && contentType.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = ipfsGatewayUrl; video.controls = true;
+                        video.style.maxWidth = '100%'; video.style.height = 'auto'; video.style.marginTop = '10px';
+                        contentDiv.appendChild(video); log("Video retrieved.");
+                    } else if (contentType && contentType.startsWith('audio/')) {
+                        const audio = document.createElement('audio');
+                        audio.src = ipfsGatewayUrl; audio.controls = true; audio.style.marginTop = '10px';
+                        contentDiv.appendChild(audio); log("Audio retrieved.");
+                    } else {
+                        const contentText = await response.text();
+                        const pre = document.createElement('pre');
+                        pre.textContent = contentText.substring(0, 500) + (contentText.length > 500 ? '\n\n... (truncated for preview)' : '');
+                        pre.style.marginTop = '10px';
+                        contentDiv.appendChild(pre); log("Text/Other content previewed.");
+                    }
+                    document.getElementById('retrievedFileContent').style.border = '1px solid #cce';
+                } else {
+                    document.getElementById('retrievedFileContent').textContent = "No content found for this CID.";
+                    log("No IPFS hash found for this Document ID.", true);
+                }
+            } catch (error) {
+                document.getElementById('retrievedCid').textContent = "Error";
+                document.getElementById('retrievedZkpCommitment').textContent = "Error";
+                document.getElementById('retrievedFileContent').textContent = `Error: ${error.message}`;
+                log(`Error retrieving details: ${error.message}`, true);
+            }
+        }
+
+        // --- Verify Secret Knowledge Locally ---
+        // This function recalculates the Poseidon hash of the provided secret key
+        // and compares it to the commitment stored on-chain.
+        // This demonstrates that you can verify knowledge without revealing the secret itself.
+        async function verifySecretKnowledge() {
+            if (typeof ethers === 'undefined' || typeof ethers.keccak256 === 'undefined') {
+                log("Ethers.js library is not loaded or not ready. Please check network and browser console.", true);
+                document.getElementById('verificationStatus').textContent = "Error";
+                return;
+            }
+
+            document.getElementById('verificationStatus').textContent = "Verifying...";
+            const secretKey = document.getElementById('verifySecretKeyInput').value.trim();
+            const targetCommitment = document.getElementById('targetCommitmentInput').value.trim();
+
+            if (!secretKey || !targetCommitment) {
+                log("Please enter both the secret key and the target commitment.", true);
+                document.getElementById('verificationStatus').textContent = "Error: Missing input";
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(secretKey);
+            let circuitPreimageInput = 0n;
+            for (let i = 0; i < bytes.length; i++) {
+                circuitPreimageInput = (circuitPreimageInput << 8n) + BigInt(bytes[i]);
+            }
+
+            try {
+                // For local verification of knowledge, we just compute the hash and compare.
+                // A full ZKP verification would involve snarkjs.groth16.verify(VK_PATH, publicSignals, proof).
+                // For this conceptual demo, comparing the computed hash to the stored commitment is sufficient.
+                
+                // We need circomlibjs for the Poseidon hash in JS
+                if (typeof circomlibjs === 'undefined') {
+                    log("circomlibjs not loaded. Cannot perform local Poseidon hash calculation.", true);
+                    document.getElementById('verificationStatus').textContent = "Error: circomlibjs missing";
+                    return;
+                }
+                const poseidon = await circomlibjs.buildPoseidon();
+                const poseidonHash = poseidon.F.toString(poseidon([circuitPreimageInput]));
+                const calculatedCommitmentHash = '0x' + BigInt(poseidonHash).toString(16).padStart(64, '0');
+
+
+                log(`Provided Secret Key: (hidden)`);
+                log(`Calculated Commitment Hash (Poseidon): ${calculatedCommitmentHash}`);
+                log(`Target Commitment Hash (from blockchain): ${targetCommitment}`);
+
+                if (calculatedCommitmentHash.toLowerCase() === targetCommitment.toLowerCase()) {
+                    document.getElementById('verificationStatus').textContent = "SUCCESS! The secret key's hash matches the on-chain commitment!";
+                    document.getElementById('verificationStatus').style.color = "green";
+                    log("Verification successful: The calculated Poseidon hash matches the on-chain commitment.", false);
+                } else {
+                    document.getElementById('verificationStatus').textContent = "FAILED! The secret key's hash does NOT match the on-chain commitment.";
+                    document.getElementById('verificationStatus').style.color = "red";
+                    log("Verification failed: The calculated Poseidon hash does not match the on-chain commitment.", true);
+                }
+
+            } catch (error) {
+                log(`Error during verification: ${error.message}`, true);
+                document.getElementById('verificationStatus').textContent = "Error during verification";
+            }
+        }
+
+
+        // --- Initial Wallet Connection & SnarkJS/Circomlibjs Loading on Page Load ---
+        window.addEventListener('load', async () => {
+            // --- Dynamically load Ethers.js first ---
+            const ethersScript = document.createElement('script');
+            // Using a specific version of Ethers.js from CDN to match your original
+            ethersScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js';
+            const ethersPromise = new Promise((resolve, reject) => {
+                ethersScript.onload = () => { log("Ethers.js loaded successfully."); resolve(); };
+                ethersScript.onerror = () => { log("Failed to load Ethers.js. Ensure network connectivity or check CDN path.", true); reject('ethers.js failed'); };
+            });
+            document.head.appendChild(ethersScript);
+
+            // --- Then dynamically load snarkjs ---
+            const snarkjsScript = document.createElement('script');
+            snarkjsScript.src = 'https://cdn.jsdelivr.net/npm/snarkjs/build/snarkjs.min.js';
+            const snarkjsPromise = new Promise((resolve, reject) => {
+                snarkjsScript.onload = () => { log("snarkjs loaded successfully."); resolve(); };
+                snarkjsScript.onerror = () => { log("Failed to load snarkjs. Ensure network connectivity or check CDN path.", true); reject('snarkjs failed'); };
+            });
+            document.head.appendChild(snarkjsScript);
+
+            // --- Then dynamically load circomlibjs ---
+            const circomlibjsScript = document.createElement('script');
+            circomlibjsScript.src = 'https://cdn.jsdelivr.net/npm/@railgun-community/circomlibjs@0.0.8/index.min.js';
+            const circomlibjsPromise = new Promise((resolve, reject) => {
+                circomlibjsScript.onload = () => { log("circomlibjs loaded successfully."); resolve(); };
+                circomlibjsScript.onerror = () => { log("Failed to load circomlibjs. Ensure network connectivity or check CDN path.", true); reject('circomlibjs failed'); };
+            });
+            document.head.appendChild(circomlibjsScript);
+
+            // --- Use a Promise.all to ensure all are loaded before proceeding ---
+            await Promise.all([ethersPromise, snarkjsPromise, circomlibjsPromise])
+                .then(() => {
+                    log("All required libraries (Ethers, SnarkJS, CircomlibJS) are loaded.");
+                    // Now that all are confirmed loaded, we can attach event listeners and connect wallet
+                    document.getElementById('generateZKPBtn').addEventListener('click', generateZKP);
+                    document.getElementById('storeCidZKPBtn').addEventListener('click', storeCidAndZKPOnBlockchain);
+                    document.getElementById('retrieveDetailsBtn').addEventListener('click', retrieveContentAndZKPFromBlockchainAndIPFS);
+                    document.getElementById('verifySecretBtn').addEventListener('click', verifySecretKnowledge);
+
+                    connectWallet(); // Call connectWallet immediately after all are loaded
+                }).catch(error => {
+                    log(`One or more libraries failed to load: ${error}`, true);
+                });
+        });
+    </script>
+</body>
+</html>
