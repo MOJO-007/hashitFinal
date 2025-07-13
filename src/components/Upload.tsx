@@ -36,7 +36,7 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
             log("3. Uploading file to IPFS...");
             const formData = new FormData();
             formData.append('file', fileToUpload, file.name);
-            const response = await fetch('http://localhost:4000/upload', { method: 'POST', body: formData });
+            const response = await fetch('https://hashitfinal-production.up.railway.app/upload', { method: 'POST', body: formData });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
             setCid(data.cid);
