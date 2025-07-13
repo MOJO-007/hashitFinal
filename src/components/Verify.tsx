@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import * as snarkjs from 'snarkjs';
-import { ViewProps, Document } from '../types'; // Assuming a full 'Document' type is defined
+import type { ViewProps, Document } from '../types'; // Assuming a full 'Document' type is defined
+// Assuming a full 'Document' type is defined
 import { sha256 } from '../utils/crypto';
 
 // These paths assume the wasm/zkey files are in your `public` directory
