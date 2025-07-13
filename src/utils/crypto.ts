@@ -31,3 +31,17 @@ export async function decryptFile(encryptedData: ArrayBuffer, password: string):
         throw new Error("Decryption failed. The provided password may be incorrect.");
     }
 }
+
+/**
+ * [NEW] Hashes a file using SHA-256.
+ * @param file The file to hash.
+ * @returns A promise that resolves to the SHA-256 hash as a hex string.
+ */
+export async function sha256(file: File): Promise<string> {
+    const fileBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    // Prepend '0x' to make it a valid hex string for ethers.js
+    const hashHex = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}

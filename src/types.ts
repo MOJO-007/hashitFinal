@@ -4,6 +4,16 @@ import { Contract, Signer } from 'ethers';
 
 export type View = 'home' | 'upload' | 'download' | 'verify';
 
+// This now includes all fields stored on-chain
+export interface Document {
+    id: string;
+    cid: string;
+    isEncrypted: boolean;
+    uploader: string;
+    zkpCommitmentHash: string;
+    originalFileHash: string;
+}
+
 export interface DocumentDetail {
     id: string;
     cid: string;

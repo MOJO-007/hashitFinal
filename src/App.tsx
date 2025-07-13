@@ -1,5 +1,6 @@
 // src/App.tsx
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // Import useCallback
 import { ethers, BrowserProvider, Contract, Signer } from 'ethers';
 import './App.css';
 
@@ -9,7 +10,8 @@ import Upload from './components/Upload';
 import Download from './components/Download';
 import Verify from './components/Verify';
 
-const CONTRACT_ADDRESS = "0x1d09eE1178C428526B46043700AcEff5951e8CFe";
+// IMPORTANT: Replace with the address of your NEWLY DEPLOYED contract.
+const CONTRACT_ADDRESS = "0x3f177fB010D748F597D42aD0904fb086CEceC765";
 const CONTRACT_ABI = [
   {
     "inputs": [
@@ -27,6 +29,11 @@ const CONTRACT_ABI = [
         "internalType": "bool",
         "name": "_isEncrypted",
         "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_originalFileHash",
+        "type": "bytes32"
       }
     ],
     "name": "addDocument",
@@ -66,6 +73,12 @@ const CONTRACT_ABI = [
         "internalType": "bool",
         "name": "isEncrypted",
         "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "originalFileHash",
+        "type": "bytes32"
       }
     ],
     "name": "DocumentAdded",
@@ -143,6 +156,11 @@ const CONTRACT_ABI = [
         "internalType": "bool",
         "name": "isEncrypted",
         "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "originalFileHash",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -151,12 +169,12 @@ const CONTRACT_ABI = [
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "_ipfsCID",
-        "type": "string"
+        "internalType": "bytes32",
+        "name": "_originalFileHash",
+        "type": "bytes32"
       }
     ],
-    "name": "getDocumentByCID",
+    "name": "getDocumentByOriginalHash",
     "outputs": [
       {
         "components": [
@@ -179,40 +197,16 @@ const CONTRACT_ABI = [
             "internalType": "bool",
             "name": "isEncrypted",
             "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "originalFileHash",
+            "type": "bytes32"
           }
         ],
         "internalType": "struct DocumentZKPStorage.Document",
         "name": "",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_documentId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getDocumentDetails",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -239,7 +233,7 @@ const CONTRACT_ABI = [
   },
   {
     "inputs": [],
-    "name": "getTotalDocuments",
+    "name": "nextDocumentId",
     "outputs": [
       {
         "internalType": "uint256",
@@ -251,8 +245,14 @@ const CONTRACT_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "nextDocumentId",
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "originalHashToDocumentId",
     "outputs": [
       {
         "internalType": "uint256",
@@ -263,7 +263,7 @@ const CONTRACT_ABI = [
     "stateMutability": "view",
     "type": "function"
   }
-];
+]
 
 declare global { interface Window { ethereum?: any; } }
 
@@ -275,12 +275,20 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>('home');
   const logRef = useRef<HTMLDivElement>(null);
 
-  const log = (message: string, isError = false) => {
+  // --- THE FIX IS HERE ---
+  // Wrap the 'log' function in useCallback to memoize it.
+  // It will now only be recreated if its dependencies change (which they won't).
+  const log = useCallback((message: string, isError = false) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prevLogs => [...prevLogs, `${timestamp}: ${message}`]);
-  };
+    const logMessage = `${timestamp}: ${message}`;
+    setLogs(prevLogs => [...prevLogs, logMessage]);
+    if (isError) console.error(logMessage);
+    else console.log(logMessage);
+  }, []); // Empty dependency array means the function is created once.
 
-  useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight); }, [logs]);
+  useEffect(() => {
+    logRef.current?.scrollTo(0, logRef.current.scrollHeight);
+  }, [logs]);
 
   const connectWallet = async () => {
     if (!window.ethereum) return log("MetaMask not detected!", true);
@@ -292,7 +300,9 @@ const App: React.FC = () => {
       const address = await currentSigner.getAddress();
       setWalletAddress(address);
       const network = await provider.getNetwork();
-      if (network.name !== 'sepolia') log(`Please switch to the Sepolia network.`, true);
+      if (network.name !== 'sepolia') {
+        log(`Please switch to the Sepolia network in MetaMask. You are on ${network.name}.`, true);
+      }
       setContract(new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, currentSigner));
       log(`Wallet connected: ${address}`);
     } catch (error: any) {
@@ -303,10 +313,15 @@ const App: React.FC = () => {
   const renderView = () => {
     const props = { contract, log, setView };
     switch (view) {
-      case 'upload': return <Upload {...props} />;
-      case 'download': return <Download {...props} signer={signer} />;
-      case 'verify': return <Verify {...props} />;
-      default: return <Dashboard signer={signer} connectWallet={connectWallet} walletAddress={walletAddress} setView={setView} />;
+      case 'upload':
+        return <Upload {...props} />;
+      case 'download':
+        return <Download {...props} signer={signer} />;
+      case 'verify':
+        return <Verify {...props} />;
+      case 'home':
+      default:
+        return <Dashboard signer={signer} connectWallet={connectWallet} walletAddress={walletAddress} setView={setView} />;
     }
   };
 
@@ -315,10 +330,11 @@ const App: React.FC = () => {
       {renderView()}
       <hr />
       <h2>Log Output</h2>
-      <div id="logOutput" className="info-box">
-        {logs.map((msg, i) => <div key={i}>{msg}</div>)}
+      <div id="logOutput" className="info-box" ref={logRef}>
+        {logs.map((logMsg, index) => <div key={index}>{logMsg}</div>)}
       </div>
     </div>
   );
 };
+
 export default App;

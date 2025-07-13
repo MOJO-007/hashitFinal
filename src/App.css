@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: hsl(240, 10%, 3.9%);
   --foreground: hsl(0, 0%, 98%);
@@ -330,4 +334,707 @@ button:disabled {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+/* Enhanced Dashboard Styles with Animated Background Lines */
+
+/* Global background lines container */
+.dashboard-home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Enhanced app header with line integration */
+.app-header {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+
+/* Header background lines */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(45deg, transparent 49%, rgba(147, 51, 234, 0.05) 50%, transparent 51%),
+    linear-gradient(-45deg, transparent 49%, rgba(59, 130, 246, 0.03) 50%, transparent 51%);
+  background-size: 40px 40px, 60px 60px;
+  animation: headerLines 15s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes headerLines {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+
+  100% {
+    background-position: 40px 40px, 60px 60px;
+  }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.app-title {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.header-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 10px;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: auto;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Nav item subtle line animation */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.6), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-item:hover::before {
+  left: 100%;
+}
+
+.nav-item:hover:not(.disabled) {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: rgba(147, 51, 234, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.nav-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(99, 102, 241, 0.05);
+  border-color: rgba(99, 102, 241, 0.1);
+}
+
+.nav-item.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+/* Enhanced hero section with dynamic lines */
+.hero-section {
+  text-align: center;
+  padding: 3rem 0 4rem;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-radius: 20px;
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 49%, rgba(147, 51, 234, 0.02) 50%, transparent 51%),
+    linear-gradient(-45deg, transparent 49%, rgba(59, 130, 246, 0.02) 50%, transparent 51%);
+  background-size: 100% 100%, 100% 100%, 80px 80px, 120px 120px;
+  animation: heroLines 25s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes heroLines {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+
+  100% {
+    background-position: 0 0, 0 0, 80px 80px, 120px 120px;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 50%, hsl(0, 0%, 98%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.highlight {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.dashboard-home>.hero-section p {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+
+.connection-section {
+  margin-top: 2rem;
+}
+
+.connect-wallet-btn {
+  width: auto;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+  box-shadow: 0 8px 25px rgba(147, 51, 234, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button line animation */
+.connect-wallet-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.connect-wallet-btn:hover::before {
+  left: 100%;
+}
+
+.connect-wallet-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(147, 51, 234, 0.4);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+.connection-hint {
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+.wallet-info {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 500px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Wallet info background lines */
+.wallet-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(45deg, transparent 49%, rgba(147, 51, 234, 0.03) 50%, transparent 51%);
+  background-size: 30px 30px;
+  animation: walletLines 20s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes walletLines {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 30px 30px;
+  }
+}
+
+.wallet-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-text {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.wallet-address {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.address-label {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.address-value {
+  color: var(--primary);
+  font-weight: 600;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.9rem;
+  background: rgba(147, 51, 234, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+.features-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.option-card {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.option-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%),
+    linear-gradient(45deg, transparent 49%, rgba(147, 51, 234, 0.02) 50%, transparent 51%);
+  background-size: 100% 100%, 50px 50px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: cardLines 15s linear infinite;
+}
+
+@keyframes cardLines {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+
+  100% {
+    background-position: 0 0, 50px 50px;
+  }
+}
+
+.option-card:hover::before {
+  opacity: 1;
+}
+
+.option-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: 0 20px 40px rgba(147, 51, 234, 0.2);
+}
+
+.option-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.option-card.disabled:hover {
+  transform: none;
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: none;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.card-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card icon line animation */
+.card-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.8), transparent);
+  transition: left 0.5s ease;
+}
+
+.option-card:hover .card-icon::before {
+  left: 100%;
+}
+
+.upload-icon {
+  background: rgba(147, 51, 234, 0.1);
+  border-color: rgba(147, 51, 234, 0.3);
+}
+
+.download-icon {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.verify-icon {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.card-header h3 {
+  color: var(--foreground);
+  font-size: 1.3rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.option-card p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+}
+
+.action-text {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.option-card:hover .action-text {
+  opacity: 1;
+}
+
+.security-badges {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+  padding: 2rem;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Security badges background lines */
+.security-badges::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(90deg, transparent 49%, rgba(147, 51, 234, 0.02) 50%, transparent 51%);
+  background-size: 60px 60px;
+  animation: badgeLines 18s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes badgeLines {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 60px;
+  }
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(147, 51, 234, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.badge:hover {
+  background: rgba(147, 51, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.badge-icon {
+  font-size: 1.2rem;
+}
+
+.badge-text {
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-item {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .hero-section {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .security-badges {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wallet-info {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  /* Reduce line animation intensity on mobile */
+  .dashboard-home::before,
+  .dashboard-home::after {
+    opacity: 0.5;
+  }
+
+  .center-on-small {
+    grid-column: 1 / -1;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}
+
+/* Performance optimization for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .dashboard-home::before,
+  .dashboard-home::after,
+  .app-header::before,
+  .hero-section::before,
+  .wallet-info::before,
+  .option-card::before,
+  .security-badges::before,
+  .floating-line,
+  .nav-item::before,
+  .connect-wallet-btn::before,
+  .card-icon::before {
+    animation: none;
+  }
+}
+
+.hashit-tagline {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: white;
+  text-align: center;
+  margin-top: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, var(--primary), #3b82f6);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(147, 51, 234, 0.3);
+  z-index: 999;
+  opacity: 0.8;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.back-to-top:hover {
+  opacity: 1;
+  transform: translateY(-4px);
 }
