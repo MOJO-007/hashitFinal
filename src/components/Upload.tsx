@@ -1,8 +1,8 @@
 // src/components/Upload.tsx
 
 import React, { useState } from 'react';
-import * as snarkjs from 'snarkjs';
-import { ViewProps } from '../types';
+import * as snarkjs from "snarkjs";
+import type { ViewProps } from '../types';
 import { encryptFile, sha256 } from '../utils/crypto';
 
 // These paths assume the wasm/zkey files are in your `public` directory
@@ -72,7 +72,7 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
             };
 
             // Step 3: Generate the proof and get the public signals.
-            const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, WASM_PATH, ZKEY_PATH);
+            const { publicSignals } = await snarkjs.groth16.fullProve(input, WASM_PATH, ZKEY_PATH);
 
             // The public signal (the Poseidon hash) is the ZKP commitment.
             const commitmentHash = '0x' + BigInt(publicSignals[0]).toString(16).padStart(64, '0');

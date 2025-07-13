@@ -1,7 +1,7 @@
 // src/components/Download.tsx
 
 import React, { useState, useEffect } from 'react';
-import { DownloadProps, DocumentDetail } from '../types';
+import type { DownloadProps, DocumentDetail } from '../types';
 import { decryptFile } from '../utils/crypto';
 
 const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) => {

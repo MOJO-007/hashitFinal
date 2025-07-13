@@ -1,6 +1,6 @@
 // src/types.ts
 
-import { Contract, Signer } from 'ethers';
+import { Contract, type Signer } from 'ethers';
 
 export type View = 'home' | 'upload' | 'download' | 'verify';
 

@@ -1,10 +1,11 @@
 // src/App.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'; // Import useCallback
-import { ethers, BrowserProvider, Contract, Signer } from 'ethers';
+import { ethers, Contract, } from 'ethers';
+import type { Signer } from 'ethers';
 import './App.css';
 
-import { View } from './types';
+import type { View } from './types';
 import Dashboard from './components/Dashboard';
 import Upload from './components/Upload';
 import Download from './components/Download';

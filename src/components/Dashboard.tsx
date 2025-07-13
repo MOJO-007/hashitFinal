@@ -1,13 +1,13 @@
 // src/components/Dashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { DashboardProps } from '../types';
+import type { DashboardProps } from '../types';
 
 const Dashboard: React.FC<DashboardProps> = ({ signer, connectWallet, walletAddress, setView }) => {
     const disconnectWallet = () => {
         window.location.reload();
     };
 
-    const [showTopButton, setShowTopButton] = useState(false);
+    const [, setShowTopButton] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setShowTopButton(window.scrollY > 300);
