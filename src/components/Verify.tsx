@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import * as snarkjs from 'snarkjs';
-import type { ViewProps, Document } from '../types'; // Assuming a full 'Document' type is defined
-// Assuming a full 'Document' type is defined
+import type { ViewProps, Document } from '../types';
 import { sha256 } from '../utils/crypto';
 
 // These paths assume the wasm/zkey files are in your `public` directory
@@ -48,21 +47,30 @@ const Verify: React.FC<ViewProps> = ({ contract, log, setView }) => {
         }
     };
 
-    // --- THIS IS THE NEW, ROBUST ZKP VERIFICATION LOGIC ---
+    // --- THIS IS THE CORRECTED ZKP VERIFICATION LOGIC ---
     const handleVerifyZkp = async () => {
         if (!cidToVerify || !password || !contract) return log("Content ID and Password are required.", true);
 
         setIsZkpVerifying(true);
         setZkpVerificationResult("Processing...");
         try {
-            // Step 1: Fetch ALL documents from the contract.
-            // This is an alternative to calling a function that might revert.
-            log("1. Fetching all documents to find a match...");
-            const totalDocs = await contract.getTotalDocuments();
+            // =========================================================================================
+            //  THE FIX IS HERE: Replace `getTotalDocuments` with the available `nextDocumentId` function.
+            // =========================================================================================
+            log("1. Fetching document count from the contract...");
+            // `nextDocumentId` gives the ID for the *next* document. The latest ID is `nextDocumentId - 1`.
+            const nextId = await contract.nextDocumentId();
+            const latestDocId = Number(nextId) - 1;
+
+            if (latestDocId < 1) {
+                throw new Error("No documents have been added to the contract yet.");
+            }
+
+            log(`Searching for CID through ${latestDocId} documents...`);
             let onChainDoc: Document | null = null;
 
-            // We loop from the newest to oldest. This is a simple 'view' call loop.
-            for (let i = Number(totalDocs); i >= 1; i--) {
+            // We loop from the newest (latestDocId) to the oldest (1).
+            for (let i = latestDocId; i >= 1; i--) {
                 const doc = await contract.documents(i);
                 if (doc.ipfsCID === cidToVerify) {
                     onChainDoc = {
@@ -96,7 +104,10 @@ const Verify: React.FC<ViewProps> = ({ contract, log, setView }) => {
             passBytes.forEach((byte) => { hexString += byte.toString(16).padStart(2, '0'); });
             const preimage = BigInt(hexString);
 
-            const { publicSignals } = await snarkjs.groth16.fullProve({ preimage }, WASM_PATH, ZKEY_PATH);
+            // The input must match the signal name in your .circom file
+            const input = { preimage };
+
+            const { publicSignals } = await snarkjs.groth16.fullProve(input, WASM_PATH, ZKEY_PATH);
             const localHash = '0x' + BigInt(publicSignals[0]).toString(16).padStart(64, '0');
             log(`4. Locally generated hash: ${localHash}`);
 

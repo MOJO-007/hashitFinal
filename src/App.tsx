@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard';
 import Upload from './components/Upload';
 import Download from './components/Download';
 import Verify from './components/Verify';
+import Instructions from './components/Instructions';
 
 // IMPORTANT: Replace with the address of your NEWLY DEPLOYED contract.
 const CONTRACT_ADDRESS = "0x3f177fB010D748F597D42aD0904fb086CEceC765";
@@ -320,7 +321,10 @@ const App: React.FC = () => {
         return <Download {...props} signer={signer} />;
       case 'verify':
         return <Verify {...props} />;
+      case 'instructions':
+        return <Instructions setView={setView} log={log} />;
       case 'home':
+
       default:
         return <Dashboard signer={signer} connectWallet={connectWallet} walletAddress={walletAddress} setView={setView} />;
     }

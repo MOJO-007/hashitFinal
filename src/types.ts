@@ -2,7 +2,8 @@
 
 import { Contract, type Signer } from 'ethers';
 
-export type View = 'home' | 'upload' | 'download' | 'verify';
+export type View = 'home' | 'upload' | 'download' | 'verify' | 'instructions';
+
 
 // This now includes all fields stored on-chain
 export interface Document {
