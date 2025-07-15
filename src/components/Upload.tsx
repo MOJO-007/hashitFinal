@@ -40,46 +40,30 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
         setProcessingStep('ipfs');
         log("Processing file...");
         try {
-            // Step 1: Calculate the file hash locally.
             log("1. Calculating file hash...");
             const originalHash = await sha256(file);
             log(`✅ File Hash: ${originalHash}`);
 
-            // =================================================================================
-            //  THE FIX IS HERE: Gracefully handle the contract's revert behavior.
-            // =================================================================================
             log("2. Checking if file already exists on the blockchain...");
             try {
-                // We ATTEMPT to get the document. If this call SUCCEEDS, the document exists.
                 const existingDoc = await contract.getDocumentByOriginalHash(originalHash);
-
-                // If the line above didn't throw an error, it means we found a duplicate.
                 const errorMessage = `This exact file has already been registered on the blockchain by: ${existingDoc.uploader}.`;
                 log(`❌ Error: ${errorMessage}`, true);
                 setAlert({ isVisible: true, title: 'File Already Exists', message: errorMessage, type: 'error' });
-                // We must stop the function here.
                 setIsProcessing(false);
                 setProcessingStep(null);
                 return;
 
             } catch (error: any) {
-                // We EXPECT this catch block to be hit for a NEW, unique file.
-                // We check if the error is the specific "not found" error from the contract.
                 const isNotFoundError = error.reason?.includes("No document found") || error.message?.includes("No document found");
-
                 if (isNotFoundError) {
-                    // This is the "happy path" for a unique file. We can proceed.
                     log("✅ File is unique. Proceeding to upload.");
                 } else {
-                    // This is a different, unexpected blockchain error. We should stop.
                     throw error;
                 }
             }
 
-            // If we've gotten past the check, we can safely set the hash and proceed.
             setOriginalFileHash(originalHash);
-
-            // Step 2: Encrypt (if needed) and upload to IPFS.
             const fileToUpload = isEncrypted ? await encryptFile(file, encryptionPassword) : file;
             if (isEncrypted) log("3. File encrypted successfully.");
 
@@ -89,8 +73,16 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
             const response = await fetch('https://hashitfinal-production.up.railway.app/upload', { method: 'POST', body: formData });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "IPFS upload failed");
+            
             setCid(data.cid);
             log(`✅ IPFS Upload Success. CID: ${data.cid}`);
+            
+            setAlert({
+                isVisible: true,
+                title: 'Upload to IPFS Complete',
+                message: 'Your file has been uploaded. Please proceed to the next step to generate your proof.',
+                type: 'info',
+            });
 
         } catch (e: any) {
             log(`An unexpected error occurred: ${e.message}`, true);
@@ -105,30 +97,21 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
     const generateZKP = async () => {
         if (!zkpSecretKey) return log("A Secret Key is required to generate the ZKP.", true);
         if (!originalFileHash) return log("Please complete 'Hash & Upload' (Step 3, Button 1) before generating the ZKP.", true);
-
         setIsProcessing(true);
         setProcessingStep('zkp');
-        log("Combining file hash and secret key to generate unique ZKP commitment...");
         try {
             const combinedInput = originalFileHash + zkpSecretKey;
             const encoder = new TextEncoder();
             const data = encoder.encode(combinedInput);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const finalHashHex = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
             const preimage = BigInt(finalHashHex);
-            const input = { preimage };
-
-            const { publicSignals } = await snarkjs.groth16.fullProve(input, WASM_PATH, ZKEY_PATH);
+            const { publicSignals } = await snarkjs.groth16.fullProve({ preimage }, WASM_PATH, ZKEY_PATH);
             const commitmentHash = '0x' + BigInt(publicSignals[0]).toString(16).padStart(64, '0');
-
             setZkpHash(commitmentHash);
             log(`✅ ZKP Hash Generated: ${commitmentHash}`);
-
         } catch (error: any) {
-            console.error("ZKP Generation Error:", error);
             log(`ZKP generation failed: ${error.message}`, true);
         } finally {
             setIsProcessing(false);
@@ -175,14 +158,13 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
         setAlert({ isVisible: false, title: '', message: '', type: 'info' });
     };
 
-
     return (
         <div className="view-container">
             {alert.isVisible && (
                 <div className="alert-overlay">
                     <div className={`alert-box alert-type-${alert.type}`}>
                         <div className="alert-icon">
-                            {alert.type === 'success' ? '✅' : '❌'}
+                            {alert.type === 'success' ? '✅' : alert.type === 'error' ? '❌' : 'ℹ️'}
                         </div>
                         <h3 className="alert-title">{alert.title}</h3>
                         <p className="alert-message">{alert.message}</p>
@@ -252,8 +234,11 @@ const Upload: React.FC<ViewProps> = ({ contract, log, setView }) => {
                 .alert-box.alert-type-error { border-color: #f43f5e; }
                 .alert-icon { font-size: 2.5rem; margin-bottom: 1rem; }
                 .alert-title { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
-                .alert-box.alert-type-success .alert-title { color: #10b981; }
-                .alert-box.alert-type-error .alert-title { color: #f43f5e; }
+                
+                /* THESE TWO LINES HAVE BEEN REMOVED TO UNIFY THE TITLE COLOR */
+                /* .alert-box.alert-type-success .alert-title { color: #10b981; } */
+                /* .alert-box.alert-type-error .alert-title { color: #f43f5e; } */
+
                 .alert-message { margin: 0 0 1.5rem 0; color: var(--muted-foreground); line-height: 1.6; }
                 .alert-button { width: 100%; }
 
