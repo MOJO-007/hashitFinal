@@ -14,7 +14,6 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
 
     useEffect(() => {
         const fetchUserDocuments = async () => {
-            // Don't proceed if the contract or signer isn't ready.
             if (!contract || !signer) {
                 return;
             }
@@ -24,14 +23,9 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
 
             try {
                 const userAddress = await signer.getAddress();
-
-                // Call the contract to get the list of document IDs for the user.
                 const docIds: any[] = await contract.getDocumentsByUploader(userAddress);
-
-                // Create an array of promises to fetch the details for each document.
+                
                 const documentsPromises = docIds.map(id => contract.documents(id));
-
-                // Use Promise.allSettled to ensure that even if one lookup fails, the others can still complete.
                 const results = await Promise.allSettled(documentsPromises);
 
                 const fetchedDocuments: DocumentDetail[] = [];
@@ -39,29 +33,28 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
                     if (result.status === 'fulfilled') {
                         const doc = result.value;
                         fetchedDocuments.push({
-                            id: docIds[index].toString(),
+                            id: docIds[index].toString(), // The real ID is still stored
                             cid: doc.ipfsCID,
                             isEncrypted: doc.isEncrypted,
                         });
                     } else {
-                        // Log an error if a specific document detail lookup failed.
                         log(`Could not fetch details for document ID ${docIds[index].toString()}: ${result.reason}`, true);
                     }
                 });
 
-                // Reverse the array to show the newest documents first.
+                // Sorting in reverse still works to show newest first
                 setUserDocuments(fetchedDocuments.reverse());
                 log(`Found and displayed ${fetchedDocuments.length} document(s).`);
 
             } catch (error: any) {
-                log(`Failed to fetch document list: ${error.message}. Make sure the contract is deployed with the 'getDocumentsByUploader' function.`, true);
+                log(`Failed to fetch document list: ${error.message}.`, true);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchUserDocuments();
-    }, [contract, signer, log]); // The effect will re-run ONLY when these stable references change.
+    }, [contract, signer, log]);
 
     const handleDecryptAndDownload = async () => {
         if (!decryptionTarget || !decryptionPassword) return;
@@ -80,6 +73,7 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
             const url = URL.createObjectURL(decryptedBlob);
             const a = document.createElement('a');
             a.href = url;
+            // The download name still uses the correct ID for clarity
             a.download = `decrypted-doc-${decryptionTarget.id}`;
             document.body.appendChild(a);
             a.click();
@@ -99,33 +93,49 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
     return (
         <div className="view-container">
             <button onClick={() => setView('home')} className="back-button">← Back to Dashboard</button>
-            <h2>My Uploaded Documents</h2>
+            <h2 className="section-title" style={{ marginTop: '2rem' }}>My Uploaded Documents</h2>
+
             <div className="document-list">
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            {/* CHANGED: Header updated to "Sl. No." */}
+                            <th>Sl. No.</th>
                             <th>Encrypted?</th>
                             <th>IPFS CID</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {isLoading && <tr><td colSpan={4} style={{ textAlign: 'center' }}>Loading...<span className="loading-spinner"></span></td></tr>}
-                        {!isLoading && userDocuments.length === 0 && (
-                            <tr><td colSpan={4} style={{ textAlign: 'center' }}>No documents found for your address.</td></tr>
+                        {isLoading && (
+                            <tr>
+                                <td colSpan={4} style={{ textAlign: 'center' }}>
+                                    Loading your documents...<span className="loading-spinner"></span>
+                                </td>
+                            </tr>
                         )}
-                        {userDocuments.map(doc => (
+                        {!isLoading && userDocuments.length === 0 && (
+                            <tr>
+                                <td colSpan={4} style={{ textAlign: 'center', color: 'var(--muted-foreground)' }}>
+                                    No documents found for your wallet address.
+                                </td>
+                            </tr>
+                        )}
+                        {/* CHANGED: We now get the index from the map function */}
+                        {userDocuments.map((doc, index) => (
+                            // The key MUST still be the unique doc.id for React to work correctly
                             <tr key={doc.id}>
-                                <td>{doc.id}</td>
+                                {/* Display the serial number (index + 1) */}
+                                <td>{index + 1}</td>
                                 <td>{doc.isEncrypted ? 'Yes 🔒' : 'No'}</td>
                                 <td>{doc.cid}</td>
                                 <td>
                                     {doc.isEncrypted ? (
+                                        // This passes the full `doc` object, including its real ID
                                         <button onClick={() => setDecryptionTarget(doc)}>Decrypt & Download</button>
                                     ) : (
-                                        <a href={`https://ipfs.io/ipfs/${doc.cid}`} target="_blank" rel="noopener noreferrer">
-                                            <button>View on IPFS</button>
+                                        <a href={`https://ipfs.io/ipfs/${doc.cid}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                            <button>View</button>
                                         </a>
                                     )}
                                 </td>
@@ -136,23 +146,30 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
             </div>
 
             {decryptionTarget && (
-                <div className="zkp-section">
+                <div className="zkp-section" style={{ marginTop: '2rem', backdropFilter: 'blur(10px)' }}>
+                    {/* The modal still uses the real ID so the user knows exactly which file they are decrypting */}
                     <h3>Decrypt File ID: {decryptionTarget.id}</h3>
-                    <p>Enter the password used to encrypt this file.</p>
+                    <p style={{ color: 'var(--muted-foreground)' }}>
+                        Enter the secret password you used when encrypting this file to download it.
+                    </p>
                     <input
                         type="password"
                         placeholder="Enter Decryption Password"
                         value={decryptionPassword}
                         onChange={e => setDecryptionPassword(e.target.value)}
+                        autoFocus
                     />
                     <button onClick={handleDecryptAndDownload} disabled={isDecrypting || !decryptionPassword}>
                         {isDecrypting ? 'Decrypting...' : 'Decrypt & Download'}
                         {isDecrypting && <span className="loading-spinner"></span>}
                     </button>
-                    <button onClick={() => setDecryptionTarget(null)} className="back-button" style={{ width: '100%', marginTop: '1rem' }}>Cancel</button>
+                    <button onClick={() => setDecryptionTarget(null)} className="back-button" style={{ width: '100%', marginTop: '0.5rem' }}>
+                        Cancel
+                    </button>
                 </div>
             )}
         </div>
     );
 };
+
 export default Download;

@@ -184,19 +184,19 @@ const Dashboard: React.FC<ExtendedDashboardProps> = ({ signer, connectWallet, wa
                             Tip: Connect to your Ethereum wallet before doing any of these.
                         </p>
                         <div className="options-grid">
-                            <div className="option-card disabled">
+                            <div className="option-card">
                                 <div className="card-header"><div className="card-icon">📁</div><h3>1. Upload to IPFS</h3></div>
                                 <p>Upload your file to IPFS and get a unique content identifier (CID).</p>
                             </div>
-                            <div className="option-card disabled">
+                            <div className="option-card">
                                 <div className="card-header"><div className="card-icon">🧠</div><h3>2. Generate ZKP</h3></div>
                                 <p>Enter your secret key to generate a zero-knowledge proof commitment.</p>
                             </div>
-                            <div className="option-card disabled">
+                            <div className="option-card">
                                 <div className="card-header"><div className="card-icon">🪙</div><h3>3. Write to Blockchain</h3></div>
                                 <p>Write your document hash and ZKP on the blockchain using just 0.0012 ETH.</p>
                             </div>
-                            <div className="option-card disabled">
+                            <div className="option-card">
                                 <div className="card-header"><div className="card-icon">✅</div><h3>4. Verify Anytime</h3></div>
                                 <p>Check the authenticity and integrity of your file anytime using its CID.</p>
                             </div>

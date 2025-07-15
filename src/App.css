@@ -31,7 +31,7 @@ body {
   padding: 32px;
   border-radius: 16px;
   border: 1px solid rgba(99, 102, 241, 0.2);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
@@ -255,12 +255,12 @@ button:disabled {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    /* transform: translateY(10px); */
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* transform: translateY(0); */
   }
 }
 
@@ -1037,4 +1037,164 @@ button:disabled {
 .back-to-top:hover {
   opacity: 1;
   transform: translateY(-4px);
+}
+
+/* === Add these styles to your existing app.css file === */
+
+.document-list {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 2rem;
+  overflow: hidden; /* Ensures the child table respects the border radius */
+  backdrop-filter: blur(10px);
+}
+
+.document-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.document-list th,
+.document-list td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Remove border from the last row's cells */
+.document-list tr:last-child td {
+  border-bottom: none;
+}
+
+.document-list th {
+  background-color: rgba(147, 51, 234, 0.05);
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.document-list td {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  word-break: break-all;
+  vertical-align: middle;
+}
+
+/* Style the buttons inside the table */
+.document-list button {
+  width: auto;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+  /* Making it slightly less prominent than main action buttons */
+  background: linear-gradient(135deg, hsl(262, 83%, 40%) 0%, hsl(262, 83%, 30%) 100%);
+}
+
+.document-list button:hover {
+   background: linear-gradient(135deg, hsl(262, 83%, 48%) 0%, hsl(262, 83%, 58%) 100%);
+   transform: translateY(-1px);
+   box-shadow: 0 4px 10px rgba(147, 51, 234, 0.2);
+}
+
+/* === Add these styles to your existing app.css file === */
+
+/*
+  Styling for the result box that appears after verification.
+  It's designed to provide clear, color-coded feedback.
+*/
+.verification-result {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border-width: 1px;
+  border-style: solid;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.verification-result p {
+  margin: 0;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  font-weight: 500;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Allows line breaks in the message */
+}
+
+/* Modifier class for SUCCESS results */
+.verification-result.success {
+  background-color: rgba(16, 185, 129, 0.1); /* Greenish tint */
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #a7f3d0; /* Light green text */
+}
+
+/* Modifier class for ERROR results */
+.verification-result.error {
+  background-color: rgba(239, 68, 68, 0.1); /* Reddish tint */
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5; /* Light red text */
+}
+
+/* Modifier class for PROCESSING state */
+.verification-result.processing {
+  background-color: rgba(59, 130, 246, 0.1); /* Bluish tint */
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #bfdbfe; /* Light blue text */
+}
+
+/*
+  Ensure that the zkp-section, which we reuse for verification,
+  has consistent styling for its internal elements.
+*/
+.zkp-section h3 {
+  color: var(--foreground);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  border: none;
+}
+
+.zkp-section p {
+  color: var(--muted-foreground);
+  margin-bottom: 1.5rem;
+}
+
+/* === Add this to your existing app.css file === */
+
+.custom-file-upload {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: block;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.custom-file-upload:hover {
+  border-color: var(--primary);
+  background-color: rgba(147, 51, 234, 0.05);
+}
+
+.custom-file-upload p {
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Optional: To remove the extra style tag from Upload.tsx */
+.fade-in { 
+  animation: fadeIn 0.5s ease-in-out; 
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
