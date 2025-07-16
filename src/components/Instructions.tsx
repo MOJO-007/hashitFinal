@@ -10,7 +10,7 @@ interface NavigationalProps {
 
 const Instructions: React.FC<NavigationalProps> = ({ setView, log }) => {
 
-    const recoveryPhrase = "brief ramp edge cycle cost speed lunch tube cry burger fetch mistake";
+    const recoveryPhrase = "release finish dog undo swap razor east vague fiber before armor idea";
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(recoveryPhrase)

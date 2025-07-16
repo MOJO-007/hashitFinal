@@ -292,6 +292,10 @@ const App: React.FC = () => {
     logRef.current?.scrollTo(0, logRef.current.scrollHeight);
   }, [logs]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
   const connectWallet = async () => {
     if (!window.ethereum) return log("MetaMask not detected!", true);
     try {
