@@ -11,6 +11,31 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
     const [decryptionTarget, setDecryptionTarget] = useState<DocumentDetail | null>(null);
     const [decryptionPassword, setDecryptionPassword] = useState("");
     const [isDecrypting, setIsDecrypting] = useState(false);
+    const [copiedCid, setCopiedCid] = useState<string | null>(null);
+    const copyIcon = "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3e%3c/rect%3e%3cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3e%3c/path%3e%3c/svg%3e";
+    const checkIcon = "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='20 6 9 17 4 12'%3e%3c/polyline%3e%3c/svg%3e";
+    // Styles for the new status badges
+    const encryptedBadgeStyle: React.CSSProperties = {
+        backgroundColor: 'rgba(139, 92, 246, 0.3)',
+        color: 'rgba(224, 204, 255, 1)',
+        padding: '4px 10px',
+        borderRadius: '12px',
+        fontSize: '0.85em',
+        fontWeight: '500',
+        whiteSpace: 'nowrap',
+    };
+
+    const publicBadgeStyle: React.CSSProperties = {
+        backgroundColor: 'rgba(107, 114, 128, 0.3)',
+        color: 'rgba(209, 213, 219, 1)',
+        padding: '4px 10px',
+        borderRadius: '12px',
+        fontSize: '0.85em',
+        fontWeight: '500',
+        whiteSpace: 'nowrap',
+    };
+
+
 
     useEffect(() => {
         const fetchUserDocuments = async () => {
@@ -24,7 +49,7 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
             try {
                 const userAddress = await signer.getAddress();
                 const docIds: any[] = await contract.getDocumentsByUploader(userAddress);
-                
+
                 const documentsPromises = docIds.map(id => contract.documents(id));
                 const results = await Promise.allSettled(documentsPromises);
 
@@ -55,6 +80,17 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
 
         fetchUserDocuments();
     }, [contract, signer, log]);
+
+    const handleCopyCID = (cid: string) => {
+        if (copiedCid === cid) return; // Prevent re-copying
+        navigator.clipboard.writeText(cid).then(() => {
+            log(`✅ Copied CID to clipboard!`);
+            setCopiedCid(cid);
+            setTimeout(() => setCopiedCid(null), 2000); // Reset after 2 seconds
+        }).catch(err => {
+            log(`Failed to copy CID: ${err}`, true);
+        });
+    };
 
     const handleDecryptAndDownload = async () => {
         if (!decryptionTarget || !decryptionPassword) return;
@@ -99,8 +135,8 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
                 <table>
                     <thead>
                         <tr>
-                            {/* CHANGED: Header updated to "Sl. No." */}
-                            <th>Sl. No.</th>
+
+                            <th style={{ whiteSpace: 'nowrap' }}>Sl No</th>
                             <th>Encrypted?</th>
                             <th>IPFS CID</th>
                             <th>Action</th>
@@ -121,21 +157,46 @@ const Download: React.FC<DownloadProps> = ({ contract, signer, log, setView }) =
                                 </td>
                             </tr>
                         )}
-                        {/* CHANGED: We now get the index from the map function */}
                         {userDocuments.map((doc, index) => (
-                            // The key MUST still be the unique doc.id for React to work correctly
                             <tr key={doc.id}>
-                                {/* Display the serial number (index + 1) */}
                                 <td>{index + 1}</td>
-                                <td>{doc.isEncrypted ? 'Yes 🔒' : 'No'}</td>
-                                <td>{doc.cid}</td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <span style={doc.isEncrypted ? encryptedBadgeStyle : publicBadgeStyle}>
+                                        {doc.isEncrypted ? 'Encrypted 🔒' : 'Public 🔓'}
+                                    </span>
+                                </td>
                                 <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span title={doc.cid} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '250px' }}>
+                                            {doc.cid}
+                                        </span>
+                                        {/* FIX: Replaced button with a clickable icon */}
+                                        <img
+                                            src={copiedCid === doc.cid ? checkIcon : copyIcon}
+                                            alt={copiedCid === doc.cid ? "Copied" : "Copy CID"}
+                                            title={copiedCid === doc.cid ? "Copied!" : "Copy CID"}
+                                            onClick={() => handleCopyCID(doc.cid)}
+                                            style={{
+                                                marginLeft: '1rem',
+                                                cursor: 'pointer',
+                                                width: '16px',
+                                                height: '16px',
+                                                opacity: copiedCid === doc.cid ? 1 : 0.6,
+                                                transition: 'opacity 0.2s'
+                                            }}
+                                        />
+                                    </div>
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
                                     {doc.isEncrypted ? (
-                                        // This passes the full `doc` object, including its real ID
-                                        <button onClick={() => setDecryptionTarget(doc)}>Decrypt & Download</button>
+                                        <button onClick={() => setDecryptionTarget(doc)} style={{ minWidth: '180px' }}>
+                                            Decrypt & Download
+                                        </button>
                                     ) : (
                                         <a href={`https://ipfs.io/ipfs/${doc.cid}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                                            <button>View</button>
+                                            <button style={{ minWidth: '180px' }}>
+                                                View
+                                            </button>
                                         </a>
                                     )}
                                 </td>
